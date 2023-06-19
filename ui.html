@@ -1,0 +1,27 @@
+<ul id="list"></ul>
+<button id="create">Find</button>
+<script>
+  document.getElementById("create").onclick = () => {
+    parent.postMessage({ pluginMessage: { type: "find" } }, "*");
+  };
+
+  function getNodeById(id) {
+    console.log(id);
+
+    parent.postMessage({ pluginMessage: { type: "getNode", id: id } }, "*");
+  }
+
+  window.onmessage = (msg) => {
+    console.log("nodes", msg.data.pluginMessage.nodes);
+    const list = document.getElementById("list");
+
+    msg.data.pluginMessage.nodes.forEach((n) => {
+      const el = document.createElement("li");
+      el.innerText = `${n.id} - ${n.name}`;
+      el.addEventListener("click", () => {
+        getNodeById(n.id);
+      });
+      list.appendChild(el);
+    });
+  };
+</script>
