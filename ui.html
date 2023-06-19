@@ -1,23 +1,22 @@
 <ul id="list"></ul>
-<button id="create">Find</button>
+<button id="find">Find</button>
 <script>
-  document.getElementById("create").onclick = () => {
+  document.getElementById("find").onclick = () => {
     parent.postMessage({ pluginMessage: { type: "find" } }, "*");
   };
 
   function getNodeById(id) {
-    console.log(id);
-
     parent.postMessage({ pluginMessage: { type: "getNode", id: id } }, "*");
   }
 
   window.onmessage = (msg) => {
-    console.log("nodes", msg.data.pluginMessage.nodes);
+    // console.log("nodes", msg.data.pluginMessage.nodes);
     const list = document.getElementById("list");
+    list.innerHTML = "";
 
     msg.data.pluginMessage.nodes.forEach((n) => {
       const el = document.createElement("li");
-      el.innerText = `${n.id} - ${n.name}`;
+      el.innerText = `${n.name}`;
       el.addEventListener("click", () => {
         getNodeById(n.id);
       });

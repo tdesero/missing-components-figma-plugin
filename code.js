@@ -9,6 +9,27 @@ figma.showUI(__html__);
 // Calls to "parent.postMessage" from within the HTML page will trigger this
 // callback. The callback will be passed the "pluginMessage" property of the
 // posted message.
+
+function getPage(nd) {
+  if (nd.type.toString() === "PAGE") {
+    return nd;
+  }
+  if (!nd.parent) {
+    return nd;
+  }
+  return getPage(nd.parent);
+}
+
+function getRoot(nd) {
+  if (nd.type.toString() === "DOCUMENT") {
+    return nd;
+  }
+  if (!nd.parent) {
+    return nd;
+  }
+  return getRoot(nd.parent);
+}
+
 figma.skipInvisibleInstanceChildren = true;
 figma.ui.onmessage = (msg) => {
   // One way of distinguishing between different types of messages sent from
@@ -22,25 +43,33 @@ figma.ui.onmessage = (msg) => {
       types: ["COMPONENT"],
     });
 
-    console.log("components", components);
-    console.log("nodes", instances);
-
     const stack = [];
     instances.forEach((instance) => {
       const found = components.find((c) => {
         return c.id === instance.mainComponent.id;
       });
 
-      console.log("found instance?", instance.id, found);
+      //console.log("found instance?", instance.id, found);
+
+      if (instance.mainComponent === null) {
+        console.log("isNull", instance.name);
+      }
+      if (instance.mainComponent === undefined) {
+        console.log("isUndefined", instance.name);
+      }
 
       if (found === undefined) {
-        const inStack = stack.find((c) => {
+        /* const inStack = stack.find((c) => {
           return c.mainComponent.id === instance.mainComponent.id;
-        });
-        console.log("inStack?", instance.id, found);
-        if (inStack === undefined) {
+        }); */
+
+        // if the mainComponent has no parent it is a missing component
+        if (!instance.mainComponent.parent) {
           stack.push(instance);
         }
+        // if (inStack === undefined) {
+        //   stack.push(instance);
+        // }
       }
     });
 
@@ -58,20 +87,6 @@ figma.ui.onmessage = (msg) => {
 
   if (msg.type === "getNode") {
     const node = figma.getNodeById(msg.id);
-
-    function getPage(nd) {
-      console.log("search for page", nd.type);
-      if (nd.type.toString() === "PAGE") {
-        console.log("jepp page");
-        return nd;
-      }
-      if (!nd.parent) {
-        return nd;
-      }
-      return getPage(nd.parent);
-    }
-
-    console.log("page", getPage(node));
 
     const page = getPage(node);
 
