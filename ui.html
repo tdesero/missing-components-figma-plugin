@@ -1,8 +1,43 @@
-<ul id="list"></ul>
-<button id="find">Find</button>
+<link
+  rel="stylesheet"
+  href="https://cdn.jsdelivr.net/gh/thomas-lowry/figma-plugin-ds/dist/figma-plugin-ds.css"
+/>
+<script src="https://cdn.jsdelivr.net/gh/thomas-lowry/figma-plugin-ds/dist/iife/figma-plugin-ds.js"></script>
 <script>
+  selectMenu.init(); //initiates the select menu component
+  disclosure.init(); //initiates the disclosure component
+</script>
+
+<div style="padding: 20px">
+  <div
+    id="spinner"
+    class="icon icon--spinner icon--spin"
+    style="display: none"
+  ></div>
+  <div id="list" style="margin-bottom: 20px"></div>
+  <button class="button button--primary" id="find">Find</button>
+</div>
+<style>
+  .button .icon {
+    height: 16px;
+    width: 16px;
+    background-size: 16px;
+  }
+</style>
+<script>
+  selectMenu.init(); //initiates the select menu component
+  disclosure.init(); //initiates the disclosure component
+</script>
+<script>
+  const spinner = document.getElementById("spinner");
+
   document.getElementById("find").onclick = () => {
-    parent.postMessage({ pluginMessage: { type: "find" } }, "*");
+    spinner.style.display = "block";
+
+    // setTimeout is a quick fix otherwise spinner won't show...
+    setTimeout(() => {
+      parent.postMessage({ pluginMessage: { type: "find" } }, "*");
+    }, 50);
   };
 
   function getNodeById(id) {
@@ -10,16 +45,22 @@
   }
 
   window.onmessage = (msg) => {
+    console.log(msg);
     // console.log("nodes", msg.data.pluginMessage.nodes);
     const list = document.getElementById("list");
     list.innerHTML = "";
+    spinner.style.display = "none";
 
     msg.data.pluginMessage.nodes.forEach((n) => {
-      const el = document.createElement("li");
+      const el = document.createElement("button");
+      const icon = document.createElement("div");
+      icon.className = "icon icon--instance icon--blue";
+      el.className = "button button--tertiary";
       el.innerText = `${n.name}`;
       el.addEventListener("click", () => {
         getNodeById(n.id);
       });
+      el.appendChild(icon);
       list.appendChild(el);
     });
   };

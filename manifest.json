@@ -5,13 +5,6 @@
   "main": "code.js",
   "capabilities": [],
   "enableProposedApi": false,
-  "editorType": [
-    "figma"
-  ],
-  "ui": "ui.html",
-  "networkAccess": {
-    "allowedDomains": [
-      "none"
-    ]
-  }
+  "editorType": ["figma"],
+  "ui": "ui.html"
 }
