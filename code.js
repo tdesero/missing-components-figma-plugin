@@ -35,6 +35,7 @@ figma.ui.onmessage = (msg) => {
       types: ["COMPONENT"],
     });
 
+    // trick to boost performance
     const simplifiedInstances = instances.map((c) => {
       return {
         name: c.name,
@@ -43,6 +44,7 @@ figma.ui.onmessage = (msg) => {
       };
     });
 
+    // trick to boost performance
     const simplifiedComponents = components.map((c) => {
       return {
         name: c.name,
@@ -87,5 +89,12 @@ figma.ui.onmessage = (msg) => {
     figma.currentPage = page;
     figma.currentPage.selection = [node];
     figma.viewport.scrollAndZoomIntoView([node]);
+  }
+
+  if (msg.type === "resize") {
+    const w = msg.size.w > 100 ? msg.size.w : 100;
+    const h = msg.size.h > 100 ? msg.size.h : 100;
+    figma.ui.resize(w, h);
+    figma.clientStorage.setAsync("size", { w, h }).catch((err) => {}); // save size
   }
 };

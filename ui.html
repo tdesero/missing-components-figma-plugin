@@ -14,7 +14,7 @@
     class="icon icon--spinner icon--spin"
     style="display: none"
   ></div>
-  <div id="list" style="margin-bottom: 20px"></div>
+  <ul id="list" class="disclosure" style="margin-bottom: 20px"></ul>
   <button
     style="width: 100%; text-align: center; justify-content: center"
     class="button button--secondary"
@@ -29,11 +29,11 @@
     width: 16px;
     background-size: 16px;
   }
+
+  .disclosure__content {
+    pointer-events: all; /* not sure why it is turned off */
+  }
 </style>
-<script>
-  selectMenu.init(); //initiates the select menu component
-  disclosure.init(); //initiates the disclosure component
-</script>
 <script>
   const spinner = document.getElementById("spinner");
 
@@ -50,6 +50,19 @@
     parent.postMessage({ pluginMessage: { type: "getNode", id: id } }, "*");
   }
 
+  function appendNodeButton(node, list) {
+    const el = document.createElement("button");
+    const icon = document.createElement("div");
+    icon.className = "icon icon--instance icon--blue";
+    el.className = "button button--tertiary";
+    el.innerText = `${node.name}`;
+    el.addEventListener("click", () => {
+      getNodeById(node.id);
+    });
+    el.appendChild(icon);
+    list.appendChild(el);
+  }
+
   window.onmessage = (msg) => {
     console.log(msg);
     // console.log("nodes", msg.data.pluginMessage.nodes);
@@ -57,17 +70,89 @@
     list.innerHTML = "";
     spinner.style.display = "none";
 
+    const accordions = {};
+
     msg.data.pluginMessage.nodes.forEach((n) => {
-      const el = document.createElement("button");
-      const icon = document.createElement("div");
-      icon.className = "icon icon--instance icon--blue";
-      el.className = "button button--tertiary";
-      el.innerText = `${n.name}`;
-      el.addEventListener("click", () => {
-        getNodeById(n.id);
+      if (!accordions[n.name]) {
+        accordions[n.name] = [n];
+      } else {
+        accordions[n.name].push(n);
+      }
+    });
+
+    Object.keys(accordions).map((name) => {
+      const accordion = document.createElement("li");
+      accordion.className = "disclosure__item";
+      const label = document.createElement("div");
+      label.className = "disclosure__label";
+      label.innerText = name;
+      const content = document.createElement("div");
+      content.className = "disclosure__content";
+
+      accordion.appendChild(label);
+      accordion.appendChild(content);
+
+      accordions[name].map((n) => {
+        appendNodeButton(n, content);
       });
-      el.appendChild(icon);
-      list.appendChild(el);
+
+      list.appendChild(accordion);
+
+      selectMenu.init(); //initiates the select menu component
+      disclosure.init(); //initiates the disclosure component
     });
   };
 </script>
+
+<!-- resizer -->
+<style>
+  #corner {
+    position: absolute;
+    right: 1px;
+    bottom: 2px;
+    cursor: nwse-resize;
+  }
+</style>
+<svg
+  id="corner"
+  xmlns="http://www.w3.org/2000/svg"
+  width="12"
+  height="12"
+  viewBox="0 0 12 12"
+  stroke="var(--black3)"
+  fill="none"
+>
+  <path
+    d="M 1 11 L 11 1"
+    stroke-width="1"
+    stroke-linejoin="miter"
+    stroke-linecap="round"
+    fill="none"
+  ></path>
+  <path
+    d="M 6 11 L 11 6"
+    stroke-width="1"
+    stroke-linejoin="miter"
+    stroke-linecap="round"
+    fill="none"
+  ></path>
+</svg>
+<script>
+  const corner = document.getElementById("corner");
+  function resizeWindow(e) {
+    const size = {
+      w: Math.max(50, Math.floor(e.clientX + 5)),
+      h: Math.max(50, Math.floor(e.clientY + 5)),
+    };
+    parent.postMessage({ pluginMessage: { type: "resize", size: size } }, "*");
+  }
+  corner.onpointerdown = (e) => {
+    corner.onpointermove = resizeWindow;
+    corner.setPointerCapture(e.pointerId);
+  };
+  corner.onpointerup = (e) => {
+    corner.onpointermove = null;
+    corner.releasePointerCapture(e.pointerId);
+  };
+</script>
+<!-- resizer end -->
