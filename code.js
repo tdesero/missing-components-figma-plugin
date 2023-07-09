@@ -24,6 +24,8 @@ function getRoot(nd) {
 
 figma.skipInvisibleInstanceChildren = true;
 figma.ui.onmessage = (msg) => {
+  const start = Date.now();
+
   if (msg.type === "find") {
     const instances = figma.root.findAllWithCriteria({
       types: ["INSTANCE"],
@@ -33,19 +35,36 @@ figma.ui.onmessage = (msg) => {
       types: ["COMPONENT"],
     });
 
-    const missingComponents = [];
-    instances.forEach((instance) => {
-      const found = components.find((c) => {
-        return c.id === instance.mainComponent.id;
-      });
-
-      if (found === undefined) {
-        // if the mainComponent has not remote it is a missing/removed component
-        if (!instance.mainComponent.remote) {
-          missingComponents.push(instance);
-        }
-      }
+    const simplifiedInstances = instances.map((c) => {
+      return {
+        name: c.name,
+        id: c.id,
+        mainComponent: c.mainComponent,
+      };
     });
+
+    const simplifiedComponents = components.map((c) => {
+      return {
+        name: c.name,
+        id: c.id,
+        mainComponent: c.mainComponent,
+      };
+    });
+
+    const missingComponents = simplifiedInstances
+      .map((instance) => {
+        const found = simplifiedComponents.find((c) => {
+          return c.id === instance.mainComponent.id;
+        });
+
+        if (found === undefined) {
+          // if the mainComponent has not remote it is a missing/removed component
+          if (!instance.mainComponent.remote) {
+            return instance;
+          }
+        }
+      })
+      .filter((i) => i); // remove unused
 
     const preparedStack = missingComponents.map((node) => {
       return {
@@ -53,6 +72,9 @@ figma.ui.onmessage = (msg) => {
         name: node.name,
       };
     });
+
+    const end = Date.now();
+    console.log("operation took: " + (end - start) + "ms");
 
     figma.ui.postMessage({ nodes: preparedStack });
   }
