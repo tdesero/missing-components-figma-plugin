@@ -6,5 +6,9 @@
   "capabilities": [],
   "enableProposedApi": false,
   "editorType": ["figma"],
-  "ui": "ui.html"
+  "ui": "ui.html",
+  "networkAccess": {
+    "allowedDomains": ["https://cdn.jsdelivr.net"],
+    "reasoning": "Loading basic styles & javascript for the ui"
+  }
 }
